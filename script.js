@@ -118,20 +118,73 @@ document.addEventListener('DOMContentLoaded', function() {
         }, { passive: true });
     });
 
-    // Smooth scrolling for anchor links
+    // Smooth scrolling for anchor links with offset for fixed navigation
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
 
             const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
+            if (targetId === '#') {
+                // Handle back to top
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+                return;
+            }
 
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
-                targetElement.scrollIntoView({
+                // Calculate offset for fixed navigation
+                const navHeight = document.querySelector('.main-nav').offsetHeight;
+                const targetPosition = targetElement.offsetTop - navHeight - 20; // 20px extra padding
+
+                window.scrollTo({
+                    top: targetPosition,
                     behavior: 'smooth'
                 });
+
+                // Update active navigation link
+                updateActiveNavLink(targetId);
             }
         });
+    });
+
+    // Function to update active navigation link
+    function updateActiveNavLink(targetId) {
+        // Remove active class from all nav links
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.classList.remove('active');
+        });
+
+        // Add active class to current link
+        const activeLink = document.querySelector(`.nav-links a[href="${targetId}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active');
+        }
+    }
+
+    // Update active navigation on scroll
+    window.addEventListener('scroll', function() {
+        const sections = ['about', 'portfolio', 'contact', 'projects', 'client-work'];
+        const navHeight = document.querySelector('.main-nav').offsetHeight;
+
+        let currentSection = '';
+
+        sections.forEach(sectionId => {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const sectionTop = section.offsetTop - navHeight - 50;
+                const sectionBottom = sectionTop + section.offsetHeight;
+
+                if (window.scrollY >= sectionTop && window.scrollY < sectionBottom) {
+                    currentSection = sectionId;
+                }
+            }
+        });
+
+        if (currentSection) {
+            updateActiveNavLink(`#${currentSection}`);
+        }
     });
 });
